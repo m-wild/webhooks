@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -11,9 +12,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using producer.Repositories;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Producer.Infrastructure;
+using Producer.Repositories;
 
-namespace producer
+namespace Producer
 {
     public class Startup
     {
@@ -30,8 +34,15 @@ namespace producer
             services.AddSingleton<IDatabase, Database>();
             services.AddSingleton<IOrderRepository, OrderRepository>();
             services.AddSingleton<IEventRepository, EventRepository>();
+            services.AddSingleton<ISubscriptionRepository, SubscriptionRepository>();
 
-            services.AddMvc();
+            services.AddSingleton<IEventQueue, EventQueue>();
+            services.AddSingleton<IEventQueueWorker, EventQueueWorker>();
+            
+            services.AddSingleton<HttpClient>(provider => new HttpClient());
+
+            services.AddMvc()
+                .AddJsonOptions(jo => jo.SerializerSettings.Converters.Add(new StringEnumConverter()));
 
             Dapper.SqlMapper.AddTypeMap(typeof(string), DbType.AnsiString);
             Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;

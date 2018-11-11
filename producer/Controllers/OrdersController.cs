@@ -1,37 +1,39 @@
 using System;
 using System.Threading;
 using Microsoft.AspNetCore.Mvc;
-using producer.Entities;
-using producer.Repositories;
+using Producer.Entities;
+using Producer.Infrastructure;
+using Producer.Repositories;
 
-namespace producer.Controllers
+namespace Producer.Controllers
 {
     [Route("api/[controller]")]
     public class OrdersController
     {
-        private readonly IOrderRepository orderRepository;
-        private readonly IEventRepository eventRepository;
+        private readonly IOrderRepository _orderRepository;
+        private readonly IEventQueue _eventQueue;
 
-        public OrdersController(IOrderRepository orderRepository, IEventRepository eventRepository)
+        public OrdersController(IOrderRepository orderRepository, IEventQueue eventQueue)
         {
-            this.orderRepository = orderRepository;
-            this.eventRepository = eventRepository;
+            _orderRepository = orderRepository;
+            _eventQueue = eventQueue;
         }
 
         [HttpGet]
         [Route("{orderId}")]
         public Order GetOrder([FromRoute] int orderId)
         {
-            return orderRepository.GetById(orderId);
+            return _orderRepository.GetById(orderId);
         }
 
         [HttpPost]
         public int CreateOrder([FromBody] Order order)
         {
-            orderRepository.Create(order);
+            _orderRepository.Create(order);
             
             var e = new Event(EventType.OrderCreated, new { order.OrderId });
-            eventRepository.CreateEvent(e);
+            _eventQueue.Add(e);
+            
             
             return order.OrderId;
         }
@@ -40,15 +42,15 @@ namespace producer.Controllers
         [Route("{orderId}")]
         public void ProcessOrder([FromRoute] int orderId)
         {
-            var order = orderRepository.GetById(orderId);
+            var order = _orderRepository.GetById(orderId);
             
             Thread.Sleep(100); // "process" the order...
             order.ProcessedAt = DateTime.Now;
             
-            orderRepository.Update(order);
+            _orderRepository.Update(order);
             
             var e = new Event(EventType.OrderProcessed, new { order.OrderId });
-            eventRepository.CreateEvent(e);
+            _eventQueue.Add(e);
         }
 
     }

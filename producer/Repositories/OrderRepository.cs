@@ -1,8 +1,9 @@
 using System;
 using Dapper;
-using producer.Entities;
+using Producer.Entities;
+using Producer.Repositories;
 
-namespace producer.Repositories
+namespace Producer.Repositories
 {
     public interface IOrderRepository
     {
@@ -33,7 +34,7 @@ namespace producer.Repositories
 
         public void Create(Order order)
         {
-            order.OrderId = db.Connection.QuerySingleOrDefault<int>(
+            order.OrderId = db.Connection.ExecuteScalar<int>(
                 "INSERT INTO orders (product_code) VALUES (@ProductCode); " + 
                 "SELECT LAST_INSERT_ID();",
                 new { order.ProductCode });

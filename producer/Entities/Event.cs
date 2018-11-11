@@ -1,7 +1,7 @@
 using System;
 using Newtonsoft.Json;
 
-namespace producer.Entities
+namespace Producer.Entities
 {
     public class Event
     {

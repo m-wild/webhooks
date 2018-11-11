@@ -1,6 +1,6 @@
 using System;
 
-namespace producer.Entities
+namespace Producer.Entities
 {
     public class Order
     {

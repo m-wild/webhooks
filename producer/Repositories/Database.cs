@@ -1,9 +1,8 @@
-using System;
 using System.Data;
 using Microsoft.Extensions.Configuration;
 using MySql.Data.MySqlClient;
 
-namespace producer
+namespace Producer.Repositories
 {
     public interface IDatabase
     {
