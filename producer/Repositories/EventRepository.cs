@@ -12,6 +12,8 @@ namespace Producer.Repositories
         void UpdateEvent(Event evnt);
         
         List<Event> GetUnacknowledged();
+
+        Event GetById(int eventId);
     }
     
     public class EventRepository : IEventRepository
@@ -28,24 +30,35 @@ namespace Producer.Repositories
             evnt.EventId = _db.Connection.ExecuteScalar<int>(
                 "INSERT INTO events (event_type_id, body) VALUES (@EventType, @Body);" +
                 "SELECT LAST_INSERT_ID();",
-                new {evnt.EventType, evnt.Body});
+                new {evnt.EventType, evnt.Body},
+                transaction: _db.Transaction);
         }
 
         public void UpdateEvent(Event evnt)
         {
             _db.Connection.Execute(
-                "REPLACE INTO events (event_id, event_type_id, body, published_at, acknowledged_at) " +
-                "VALUES (@EventId, @EventType, @Body, @PublishedAt, @AcknowledgedAt);", 
-                evnt);
+                "REPLACE INTO events (event_id, event_type_id, body, acknowledged_at) " +
+                "VALUES (@EventId, @EventType, @Body, @AcknowledgedAt);", 
+                evnt,
+                transaction: _db.Transaction);
         }
 
         public List<Event> GetUnacknowledged()
         {
             return _db.Connection.Query<Event>(
-                    "SELECT event_id, event_type_id as event_type, body, published_at, acknowledged_at " +
-                    "FROM events WHERE acknowledged_at IS NULL;")
+                "SELECT event_id, event_type_id as event_type, body, acknowledged_at " +
+                "FROM events WHERE acknowledged_at IS NULL;",
+                transaction: _db.Transaction)
                 .ToList();
+        }
 
+        public Event GetById(int eventId)
+        {
+            return _db.Connection.QuerySingleOrDefault<Event>(
+                "SELECT event_id, event_type_id as event_type, body, acknowledged_at " +
+                "FROM events WHERE event_id = @EventId;",
+                new {eventId},
+                transaction: _db.Transaction);
         }
     }
 }

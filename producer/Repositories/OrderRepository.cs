@@ -16,35 +16,38 @@ namespace Producer.Repositories
     
     public class OrderRepository : IOrderRepository
     {
-        private readonly IDatabase db;
+        private readonly IDatabase _db;
 
         public OrderRepository(IDatabase db)
         {
-            this.db = db;
+            _db = db;
         }
 
         public Order GetById(int orderId)
         {
-            var order = db.Connection.QuerySingleOrDefault<Order>(
+            var order = _db.Connection.QuerySingleOrDefault<Order>(
                 "SELECT * FROM orders WHERE order_id = @OrderId;",
-                new { orderId });
+                new { orderId },
+                transaction: _db.Transaction);
 
             return order ?? throw new Exception("Order not found");
         }
 
         public void Create(Order order)
         {
-            order.OrderId = db.Connection.ExecuteScalar<int>(
+            order.OrderId = _db.Connection.ExecuteScalar<int>(
                 "INSERT INTO orders (product_code) VALUES (@ProductCode); " + 
                 "SELECT LAST_INSERT_ID();",
-                new { order.ProductCode });
+                new { order.ProductCode },
+                transaction: _db.Transaction);
         }
 
         public void Update(Order order)
         {
-            db.Connection.Execute(
+            _db.Connection.Execute(
                 "REPLACE INTO orders (order_id, product_code, created_at, processed_at) VALUES (@OrderId, @ProductCode, @CreatedAt, @ProcessedAt);",
-                order);
+                order,
+                transaction: _db.Transaction);
         }
     }
 }

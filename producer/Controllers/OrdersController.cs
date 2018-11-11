@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Producer.Entities;
 using Producer.Infrastructure;
 using Producer.Repositories;
+using Producer.Services;
 
 namespace Producer.Controllers
 {
@@ -11,12 +12,12 @@ namespace Producer.Controllers
     public class OrdersController
     {
         private readonly IOrderRepository _orderRepository;
-        private readonly IEventQueue _eventQueue;
+        private readonly IEventService _eventService;
 
-        public OrdersController(IOrderRepository orderRepository, IEventQueue eventQueue)
+        public OrdersController(IOrderRepository orderRepository, IEventService eventService)
         {
             _orderRepository = orderRepository;
-            _eventQueue = eventQueue;
+            _eventService = eventService;
         }
 
         [HttpGet]
@@ -32,7 +33,7 @@ namespace Producer.Controllers
             _orderRepository.Create(order);
             
             var e = new Event(EventType.OrderCreated, new { order.OrderId });
-            _eventQueue.Add(e);
+            _eventService.Add(e);
             
             
             return order.OrderId;
@@ -50,7 +51,7 @@ namespace Producer.Controllers
             _orderRepository.Update(order);
             
             var e = new Event(EventType.OrderProcessed, new { order.OrderId });
-            _eventQueue.Add(e);
+            _eventService.Add(e);
         }
 
     }

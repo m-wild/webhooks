@@ -16,6 +16,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Producer.Infrastructure;
 using Producer.Repositories;
+using Producer.Services;
 
 namespace Producer
 {
@@ -31,18 +32,21 @@ namespace Producer
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IDatabase, Database>();
-            services.AddSingleton<IOrderRepository, OrderRepository>();
-            services.AddSingleton<IEventRepository, EventRepository>();
-            services.AddSingleton<ISubscriptionRepository, SubscriptionRepository>();
+            services.AddScoped<IDatabase, Database>();
+            services.AddScoped<IOrderRepository, OrderRepository>();
+            services.AddScoped<IEventRepository, EventRepository>();
+            services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
+            services.AddScoped<IEventService, EventService>();
 
-            services.AddSingleton<IEventQueue, EventQueue>();
-            services.AddSingleton<IEventQueueWorker, EventQueueWorker>();
-            
-            services.AddSingleton<HttpClient>(provider => new HttpClient());
-
-            services.AddMvc()
+            services.AddScoped<TransactionFilter>();
+            services.AddMvc(o =>
+                {
+                    o.Filters.AddService<TransactionFilter>();
+                })
                 .AddJsonOptions(jo => jo.SerializerSettings.Converters.Add(new StringEnumConverter()));
+            
+            services.AddSingleton<IEventQueue, EventQueue>();
+            services.AddSingleton<HttpClient>(provider => new HttpClient());
 
             Dapper.SqlMapper.AddTypeMap(typeof(string), DbType.AnsiString);
             Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;

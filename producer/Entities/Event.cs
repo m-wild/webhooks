@@ -22,8 +22,6 @@ namespace Producer.Entities
 
         public string Body { get; set; }
 
-        public DateTime? PublishedAt { get; set; }
-
         public DateTime? AcknowledgedAt { get; set; }
     }
 
