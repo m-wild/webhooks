@@ -60,5 +60,6 @@ namespace Producer.Repositories
                 new {eventId},
                 transaction: _db.Transaction);
         }
+
     }
 }

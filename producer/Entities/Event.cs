@@ -1,5 +1,6 @@
 using System;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace Producer.Entities
 {
@@ -18,6 +19,7 @@ namespace Producer.Entities
 
         public int EventId { get; set; }
 
+        [JsonConverter(typeof(StringEnumConverter))]
         public EventType EventType { get; set; }    
 
         public string Body { get; set; }

@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Producer.Entities;
 using Producer.Repositories;
 using Timer = System.Timers.Timer;
@@ -91,7 +92,7 @@ namespace Producer.Services
                 try
                 {
                     var httpRequest = new HttpRequestMessage(HttpMethod.Post, sub.Uri);
-                    httpRequest.Content = new StringContent(evnt.Body, Encoding.UTF8, "application/json");
+                    httpRequest.Content = new StringContent(JsonConvert.SerializeObject(evnt), Encoding.UTF8, "application/json");
 
                     var response = await _httpClient.SendAsync(httpRequest);
 

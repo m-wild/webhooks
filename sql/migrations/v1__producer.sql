@@ -1,4 +1,4 @@
-USE webhooks;
+USE producer;
 
 -- webhooks
 CREATE TABLE subscriptions (
