@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using System.Data;
+using System.Net.Http;
 using consumer.Repositories;
 using Consumer.Repositories;
 using Microsoft.AspNetCore.Builder;
@@ -28,6 +29,9 @@ namespace consumer
             services.AddSingleton<HttpClient>(provider => new HttpClient());
             
             services.AddMvc();
+            
+            Dapper.SqlMapper.AddTypeMap(typeof(string), DbType.AnsiString);
+            Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -33,7 +33,7 @@ namespace consumer.Repositories
 
         public List<Email> GetAll()
         {
-            return _db.Connection.Query<Email>("SELECT * FROM emails;", transaction: _db.Transaction)
+            return _db.Connection.Query<Email>("SELECT * FROM emails ORDER BY email_id DESC LIMIT 100;", transaction: _db.Transaction)
                 .ToList();
         }
     }
