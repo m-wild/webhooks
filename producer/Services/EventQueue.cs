@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -27,7 +28,7 @@ namespace Producer.Services
 
         private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
         private readonly BlockingCollection<EventSubscription> _queue;
-        private readonly Task _dequeueTask;
+        private readonly IList<Task> _dequeueTasks;
         private readonly Timer _timer;
         
         public EventQueue(HttpClient httpClient, ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
@@ -42,11 +43,19 @@ namespace Producer.Services
 
             _queue = new BlockingCollection<EventSubscription>();
 
-            _dequeueTask = Task.Run(DequeueTask, _cancellationTokenSource.Token);
+            var numberOfWorkers = 4;
+            _dequeueTasks = new Task[numberOfWorkers];
+            for (var i = 0; i < numberOfWorkers; i++)
+            {
+                _dequeueTasks[i] = Task.Run(DequeueTask, _cancellationTokenSource.Token);
+            }
+            
+            
+            
             
             _timer = new Timer
             {
-                Interval = TimeSpan.FromSeconds(5).TotalMilliseconds,
+                Interval = TimeSpan.FromMinutes(1).TotalMilliseconds,
                 AutoReset = false,
             };
             _timer.Elapsed += AddUnpublishedTasks;
@@ -124,8 +133,8 @@ namespace Producer.Services
                     var subscriptionRepository = scope.ServiceProvider.GetRequiredService<ISubscriptionRepository>();
 
                     var unpublished = subscriptionRepository.GetUnpublishedEventSubscriptions()
-                        // created well before the previous run
-                        .Where(es => es.CreatedAt < DateTime.Now.AddMilliseconds(1 - (_timer.Interval * 2)));
+                        // created before the previous run
+                        .Where(es => es.CreatedAt.AddMilliseconds(_timer.Interval) < DateTime.Now);
 
                     foreach (var es in unpublished)
                     {
@@ -147,7 +156,13 @@ namespace Producer.Services
         public void Dispose()
         {
             _cancellationTokenSource?.Cancel();
-            _dequeueTask?.Dispose();
+            if (_dequeueTasks != null)
+            {
+                foreach (var task in _dequeueTasks)
+                {
+                    task?.Dispose();
+                }
+            }
         }
     }
 }

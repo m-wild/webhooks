@@ -8,4 +8,8 @@ CREATE TABLE emails (
 );
 
 
-select * from emails
+/*
+
+select * from emails;
+
+*/

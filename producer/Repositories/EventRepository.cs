@@ -37,8 +37,9 @@ namespace Producer.Repositories
         public void UpdateEvent(Event evnt)
         {
             _db.Connection.Execute(
-                "REPLACE INTO events (event_id, event_type_id, body, acknowledged_at) " +
-                "VALUES (@EventId, @EventType, @Body, @AcknowledgedAt);", 
+                "UPDATE events " +
+                "SET event_type_id = @EventType, body = @Body, acknowledged_at = @AcknowledgedAt " +
+                "WHERE event_id = @EventId;", 
                 evnt,
                 transaction: _db.Transaction);
         }

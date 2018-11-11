@@ -45,7 +45,9 @@ namespace Producer.Repositories
         public void Update(Order order)
         {
             _db.Connection.Execute(
-                "REPLACE INTO orders (order_id, product_code, created_at, processed_at) VALUES (@OrderId, @ProductCode, @CreatedAt, @ProcessedAt);",
+                "UPDATE orders " +
+                "SET product_code = @ProductCode, created_at = @CreatedAt, processed_at = @ProcessedAt " +
+                "WHERE order_id = @OrderId;",
                 order,
                 transaction: _db.Transaction);
         }

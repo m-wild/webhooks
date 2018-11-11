@@ -83,8 +83,9 @@ namespace Producer.Repositories
         public void UpdateEventSubscription(EventSubscription eventSubscription)
         {
             _db.Connection.Execute(
-                "REPLACE INTO event_subscriptions (subscription_id, event_id, created_at, published_at) " +
-                "VALUES (@SubscriptionId, @EventId, @CreatedAt, @PublishedAt);",
+                "UPDATE event_subscriptions " +
+                "SET created_at = @CreatedAt, published_at = @PublishedAt " +
+                "WHERE event_id = @EventId AND subscription_id = @SubscriptionId;",
                 eventSubscription,
                 transaction: _db.Transaction);
         }
